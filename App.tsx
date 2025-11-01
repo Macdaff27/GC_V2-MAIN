@@ -12,7 +12,6 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   Platform,
-  Pressable,
   StatusBar,
   StyleSheet,
   useColorScheme,
@@ -24,6 +23,7 @@ import ClientFormModal, {
   createFormValuesFromClient,
 } from './src/components/ClientFormModal';
 import ClientCard from './src/components/ClientCard';
+import DatabaseToggle from './src/components/DatabaseToggle';
 import SearchBar from './src/components/SearchBar';
 import { errorCodes as documentPickerErrorCodes, isErrorWithCode as isDocumentPickerError, keepLocalCopy, pick, types as documentPickerTypes } from '@react-native-documents/picker';
 import RNFS from 'react-native-fs';
@@ -55,71 +55,6 @@ import {
   normalizeString,
   buildExportFileName,
 } from './src/utils/format';
-
-
-type DatabaseToggleProps = {
-  activeDatabase: DatabaseName;
-  palette: Palette;
-  mainReady: boolean;
-  archiveReady: boolean;
-  onSelect: (target: DatabaseName) => void;
-};
-
-function DatabaseToggle({
-  activeDatabase,
-  palette,
-  mainReady,
-  archiveReady,
-  onSelect,
-}: DatabaseToggleProps) {
-  return (
-    <View style={styles.databaseToggle}>
-      <Pressable
-        onPress={() => onSelect('main')}
-        style={({ pressed }) => [
-          styles.databaseToggleButton,
-          activeDatabase === 'main' && styles.databaseToggleButtonActive,
-          {
-            borderColor: palette.accent,
-            backgroundColor: activeDatabase === 'main' ? palette.accent : 'transparent',
-          },
-          pressed && styles.databaseToggleButtonPressed,
-        ]}
-      >
-        <AppText
-          style={[
-            styles.databaseToggleText,
-            { color: activeDatabase === 'main' ? palette.background : palette.textPrimary },
-          ]}
-        >
-          📋 Actives ({mainReady ? '✓' : '...'})
-        </AppText>
-      </Pressable>
-
-      <Pressable
-        onPress={() => onSelect('archive')}
-        style={({ pressed }) => [
-          styles.databaseToggleButton,
-          activeDatabase === 'archive' && styles.databaseToggleButtonActive,
-          {
-            borderColor: palette.accent,
-            backgroundColor: activeDatabase === 'archive' ? palette.accent : 'transparent',
-          },
-          pressed && styles.databaseToggleButtonPressed,
-        ]}
-      >
-        <AppText
-          style={[
-            styles.databaseToggleText,
-            { color: activeDatabase === 'archive' ? palette.background : palette.textPrimary },
-          ]}
-        >
-          📦 Archives ({archiveReady ? '✓' : '...'})
-        </AppText>
-      </Pressable>
-    </View>
-  );
-}
 
 function App(): React.JSX.Element {
   const systemIsDark = useColorScheme() === 'dark';
@@ -992,29 +927,6 @@ const styles = StyleSheet.create({
     borderRadius: 120,
     backgroundColor: 'rgba(56, 189, 248, 0.18)',
     transform: [{ rotate: '25deg' }],
-  },
-  databaseToggle: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 4,
-  },
-  databaseToggleButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  databaseToggleButtonActive: {},
-  databaseToggleButtonPressed: {
-    opacity: 0.8,
-  },
-  databaseToggleText: {
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.3,
   },
   controls: {
     gap: 12,
