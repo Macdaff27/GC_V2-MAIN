@@ -16,12 +16,7 @@ import {
 import AppText from './AppText';
 import ClientFormModal from './src/components/ClientFormModal';
 import ClientCard from './src/components/ClientCard';
-import DatabaseToggle from './src/components/DatabaseToggle';
-import SearchBar from './src/components/SearchBar';
-import DataActions from './src/components/DataActions';
-import ThemeToggle from './src/components/ThemeToggle';
-import SortButton from './src/components/SortButton';
-import Stats from './src/components/Stats';
+import AppControls from './src/components/AppControls';
 import FloatingActionButton from './src/components/FloatingActionButton';
 import {
   SafeAreaProvider,
@@ -212,51 +207,28 @@ const renderClient = useCallback(({ item }: { item: ClientWithRelations }) => (
       <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]}>
         <View style={styles.glow} />
 
-        <View
-          style={styles.controls}
-        >
-          <DatabaseToggle
-            activeDatabase={activeDatabase}
-            palette={palette}
-            mainReady={mainDbReady}
-            archiveReady={archiveDbReady}
-            onSelect={handleSelectDatabase}
-          />
-
-          <SearchBar
-            value={clientFilters.searchQuery}
-            onChangeText={clientFilters.setSearchQuery}
-            palette={palette}
-          />
-
-          <DataActions
-            onExport={clientData.triggerExport}
-            onImport={clientData.triggerImport}
-            isExporting={clientData.isExporting}
-            isImporting={clientData.isImporting}
-            clientsCount={clients.length}
-            palette={palette}
-          />
-
-          <Stats
-            statusFilter={clientFilters.statusFilter}
-            onFilterChange={clientFilters.setStatusFilter}
-            counts={clientFilters.statusCounts}
-            palette={palette}
-          />
-
-          <ThemeToggle
-            isDark={manualDarkMode ?? systemIsDark}
-            onToggle={(value: boolean) => setManualDarkMode(value ? true : value === false ? false : null)}
-            palette={palette}
-          />
-
-          <SortButton
-            isAscending={clientFilters.isSortAscending}
-            onToggle={() => clientFilters.setIsSortAscending(!clientFilters.isSortAscending)}
-            palette={palette}
-          />
-        </View>
+        <AppControls
+          activeDatabase={activeDatabase}
+          mainReady={mainDbReady}
+          archiveReady={archiveDbReady}
+          onSelectDatabase={handleSelectDatabase}
+          searchQuery={clientFilters.searchQuery}
+          onChangeSearchQuery={clientFilters.setSearchQuery}
+          statusFilter={clientFilters.statusFilter}
+          onChangeStatusFilter={clientFilters.setStatusFilter}
+          statusCounts={clientFilters.statusCounts}
+          isSortAscending={clientFilters.isSortAscending}
+          onToggleSort={() => clientFilters.setIsSortAscending(!clientFilters.isSortAscending)}
+          onExport={clientData.triggerExport}
+          onImport={clientData.triggerImport}
+          isExporting={clientData.isExporting}
+          isImporting={clientData.isImporting}
+          clientsCount={clients.length}
+          isDark={manualDarkMode}
+          systemIsDark={systemIsDark}
+          onToggleTheme={(value: boolean) => setManualDarkMode(value ? true : value === false ? false : null)}
+          palette={palette}
+        />
 
         <FlatList
           ref={smartScroll.listRef}
@@ -307,10 +279,6 @@ const styles = StyleSheet.create({
     borderRadius: 120,
     backgroundColor: 'rgba(56, 189, 248, 0.18)',
     transform: [{ rotate: '25deg' }],
-  },
-  controls: {
-    gap: 12,
-    marginBottom: 16,
   },
   listContent: {
     paddingBottom: 48,
