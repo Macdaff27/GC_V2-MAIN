@@ -12,6 +12,7 @@ export type Palette = {
   actionButtonText: string;
 };
 export type DatabaseName = 'main' | 'archive';
+export type StatusFilter = 'all' | 'in-progress' | 'done';
 export type Fee = {
   type: string;
   montant: number;
