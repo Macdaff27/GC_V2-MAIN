@@ -2,7 +2,6 @@ import React, {
   useCallback,
   useEffect,
   useMemo,
-  useState,
 } from 'react';
 import {
   Alert,
@@ -10,7 +9,6 @@ import {
   FlatList,
   StatusBar,
   StyleSheet,
-  useColorScheme,
   View,
 } from 'react-native';
 import AppText from './AppText';
@@ -27,27 +25,20 @@ import { useClientActions } from './src/hooks/useClientActions';
 import { useClientFilters } from './src/hooks/useClientFilters';
 import { useClientData } from './src/hooks/useClientData';
 import { useSmartScroll } from './src/hooks/useSmartScroll';
+import { useAppState } from './src/hooks/useAppState';
 
 import type {
-  Palette,
   ClientWithRelations,
   DatabaseName,
-  ClientFormValues,
 } from './src/types';
 
 function App(): React.JSX.Element {
-  const systemIsDark = useColorScheme() === 'dark'; 
-  const [manualDarkMode, setManualDarkMode] = useState<boolean | null>(null);
-  const isDarkMode = manualDarkMode ?? systemIsDark;
-  const [clients, setClients] = useState<ClientWithRelations[]>([]);
-  const [formVisible, setFormVisible] = useState(false);
-  const [formInitialValues, setFormInitialValues] = useState<ClientFormValues | null>(null);
-  const [formSubmitting, setFormSubmitting] = useState(false);
-  const [activeDatabase, setActiveDatabase] = useState<DatabaseName>('main');
+  // Application state hook
+  const appState = useAppState();
 
   const mainDb = useDatabase({ databaseName: 'main' });
   const archiveDb = useDatabase({ databaseName: 'archive' });
-  const activeDb = activeDatabase === 'main' ? mainDb : archiveDb;
+  const activeDb = appState.activeDatabase === 'main' ? mainDb : archiveDb;
 
   const {
     loadClients: loadDbClients,
@@ -61,42 +52,12 @@ function App(): React.JSX.Element {
 
 
 
-  const palette = useMemo<Palette>(() => (
-    isDarkMode
-      ? {
-          background: '#0F172A',
-          surface: 'rgba(15, 23, 42, 0.72)',
-          surfaceBorder: 'rgba(148, 163, 184, 0.14)',
-          accent: '#38BDF8',
-          textPrimary: '#F8FAFC',
-          textSecondary: '#CBD5F5',
-          searchBackground: 'rgba(30, 41, 59, 0.92)',
-          searchPlaceholder: 'rgba(248, 250, 252, 0.55)',
-          actionButtonBackground: 'rgba(148, 163, 184, 0.24)',
-          actionButtonBackgroundDisabled: 'rgba(148, 163, 184, 0.12)',
-          actionButtonText: '#F8FAFC',
-        }
-      : {
-          background: '#F1F5F9',
-          surface: 'rgba(255, 255, 255, 0.88)',
-          surfaceBorder: 'rgba(148, 163, 184, 0.20)',
-          accent: '#0284C7',
-          textPrimary: '#0F172A',
-          textSecondary: '#475569',
-          searchBackground: '#E2E8F0',
-          searchPlaceholder: 'rgba(15, 23, 42, 0.45)',
-          actionButtonBackground: '#E2E8F0',
-          actionButtonBackgroundDisabled: 'rgba(226, 232, 240, 0.65)',
-          actionButtonText: '#1E293B',
-        }
-  ), [isDarkMode]);
-
   // Client filters hook
-  const clientFilters = useClientFilters({ clients });
+  const clientFilters = useClientFilters({ clients: appState.clients });
 
   // Smart scroll hook
   const smartScroll = useSmartScroll({
-    clients,
+    clients: appState.clients,
     filteredClients: clientFilters.filteredClients,
     searchFilteredClients: clientFilters.searchFilteredClients,
     searchQuery: clientFilters.searchQuery,
@@ -107,7 +68,7 @@ function App(): React.JSX.Element {
 
   // Client data hook
   const clientData = useClientData({
-    clients,
+    clients: appState.clients,
     isReady,
     createClient: createDbClient,
     clearAllData: clearDbAllData,
@@ -122,7 +83,7 @@ function App(): React.JSX.Element {
     clientData.setLoading(true);
     try {
       const data = await loadDbClients();
-      setClients(data);
+      appState.setClients(data);
     } catch (error) {
       console.error('Erreur lors du chargement des clientes', error);
       const message = error instanceof Error && error.message
@@ -132,15 +93,15 @@ function App(): React.JSX.Element {
     } finally {
       clientData.setLoading(false);
     }
-  }, [isReady, loadDbClients, clientData]);
+  }, [isReady, loadDbClients, clientData, appState]);
 
   // Client actions hook
   const clientActions = useClientActions({
-    activeDatabase,
+    activeDatabase: appState.activeDatabase,
     onLoadClients: loadClients,
-    onSetFormVisible: setFormVisible,
-    onSetFormInitialValues: setFormInitialValues,
-    onSetFormSubmitting: setFormSubmitting,
+    onSetFormVisible: appState.setFormVisible,
+    onSetFormInitialValues: appState.setFormInitialValues,
+    onSetFormSubmitting: appState.setFormSubmitting,
     onSetPendingScrollClientId: smartScroll.setPendingScrollClientId,
     onSetShouldRestoreScroll: smartScroll.setShouldRestoreScroll,
   });
@@ -149,13 +110,13 @@ function App(): React.JSX.Element {
     if (dbError) {
       console.error("Erreur d'initialisation SQLite", dbError);
       Alert.alert('Erreur', "Impossible d'initialiser la base de donn\u00E9es.");
-      setClients([]);
+      appState.setClients([]);
       clientData.setLoading(false);
       return;
     }
 
     loadClients().catch(() => {});
-  }, [dbError, loadClients, clientData]);
+  }, [dbError, loadClients, clientData, appState]);
 
 
 
@@ -163,52 +124,52 @@ function App(): React.JSX.Element {
     <View style={styles.listEmpty}>
       {clientData.loading ? (
         <>
-          <ActivityIndicator color={palette.accent} />
-          <AppText style={[styles.emptyText, { color: palette.textSecondary }]}>Chargement...</AppText>
+          <ActivityIndicator color={appState.palette.accent} />
+          <AppText style={[styles.emptyText, { color: appState.palette.textSecondary }]}>Chargement...</AppText>
         </>
       ) : (
-        <AppText style={[styles.emptyText, { color: palette.textSecondary }]}>Importez un fichier JSON pour commencer.</AppText>
+        <AppText style={[styles.emptyText, { color: appState.palette.textSecondary }]}>Importez un fichier JSON pour commencer.</AppText>
       )}
     </View>
-  ), [clientData.loading, palette]);
+  ), [clientData.loading, appState.palette]);
 
 
 
 
   const handleSelectDatabase = useCallback((dbName: DatabaseName) => {
-    if (dbName === activeDatabase) {
+    if (dbName === appState.activeDatabase) {
       return;
     }
     clientData.setLoading(true);
-    setClients([]);
-    setActiveDatabase(dbName);
-  }, [activeDatabase, clientData]);
+    appState.setClients([]);
+    appState.setActiveDatabase(dbName);
+  }, [appState, clientData]);
 
 const renderClient = useCallback(({ item }: { item: ClientWithRelations }) => (
     <ClientCard
       client={item}
-      palette={palette}
+      palette={appState.palette}
       onToggleStatus={clientActions.handleToggleStatus}
       onEdit={clientActions.handleEditClient}
       onDelete={clientActions.handleDeleteClient}
-      activeDatabase={activeDatabase}
+      activeDatabase={appState.activeDatabase}
       onArchive={clientActions.handleArchiveClient}
       onUnarchive={clientActions.handleUnarchiveClient}
     />
-  ), [activeDatabase, clientActions, palette]);
+  ), [appState.activeDatabase, clientActions, appState.palette]);
 
   return (
     <SafeAreaProvider>
       <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
+        barStyle={appState.isDarkMode ? 'light-content' : 'dark-content'}
         backgroundColor="transparent"
         translucent
       />
-      <SafeAreaView style={[styles.container, { backgroundColor: palette.background }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: appState.palette.background }]}>
         <View style={styles.glow} />
 
         <AppControls
-          activeDatabase={activeDatabase}
+          activeDatabase={appState.activeDatabase}
           mainReady={mainDbReady}
           archiveReady={archiveDbReady}
           onSelectDatabase={handleSelectDatabase}
@@ -223,11 +184,11 @@ const renderClient = useCallback(({ item }: { item: ClientWithRelations }) => (
           onImport={clientData.triggerImport}
           isExporting={clientData.isExporting}
           isImporting={clientData.isImporting}
-          clientsCount={clients.length}
-          isDark={manualDarkMode}
-          systemIsDark={systemIsDark}
-          onToggleTheme={(value: boolean) => setManualDarkMode(value ? true : value === false ? false : null)}
-          palette={palette}
+          clientsCount={appState.clients.length}
+          isDark={appState.manualDarkMode}
+          systemIsDark={false}
+          onToggleTheme={appState.handleToggleTheme}
+          palette={appState.palette}
         />
 
         <FlatList
@@ -247,17 +208,17 @@ const renderClient = useCallback(({ item }: { item: ClientWithRelations }) => (
 
         <FloatingActionButton
           onPress={clientActions.handleCreateClient}
-          palette={palette}
+          palette={appState.palette}
           accessibilityLabel="Ajouter une cliente"
         />
       </SafeAreaView>
       <ClientFormModal
-        visible={formVisible}
-        palette={palette}
-        initialValues={formInitialValues}
+        visible={appState.formVisible}
+        palette={appState.palette}
+        initialValues={appState.formInitialValues}
         onClose={clientActions.handleCloseForm}
         onSubmit={clientActions.handleSubmitClientForm}
-        submitting={formSubmitting}
+        submitting={appState.formSubmitting}
       />
     </SafeAreaProvider>
   );
