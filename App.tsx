@@ -120,18 +120,25 @@ function App(): React.JSX.Element {
 
 
 
-  const listEmptyComponent = useMemo(() => (
-    <View style={styles.listEmpty}>
-      {clientData.loading ? (
-        <>
-          <ActivityIndicator color={appState.palette.accent} />
-          <AppText style={[styles.emptyText, { color: appState.palette.textSecondary }]}>Chargement...</AppText>
-        </>
-      ) : (
-        <AppText style={[styles.emptyText, { color: appState.palette.textSecondary }]}>Importez un fichier JSON pour commencer.</AppText>
-      )}
-    </View>
-  ), [clientData.loading, appState.palette]);
+  const listEmptyComponent = useMemo(() => {
+    const hasClients = appState.clients.length > 0;
+    const hasFilteredClients = clientFilters.filteredClients.length > 0;
+
+    return (
+      <View style={styles.listEmpty}>
+        {clientData.loading ? (
+          <>
+            <ActivityIndicator color={appState.palette.accent} />
+            <AppText style={[styles.emptyText, { color: appState.palette.textSecondary }]}>Chargement...</AppText>
+          </>
+        ) : hasClients && !hasFilteredClients ? (
+          <AppText style={[styles.emptyText, { color: appState.palette.textSecondary }]}>Aucune cliente trouvée</AppText>
+        ) : (
+          <AppText style={[styles.emptyText, { color: appState.palette.textSecondary }]}>Importez un fichier JSON pour commencer.</AppText>
+        )}
+      </View>
+    );
+  }, [clientData.loading, appState.clients.length, clientFilters.filteredClients.length, appState.palette]);
 
 
 
