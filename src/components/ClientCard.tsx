@@ -15,7 +15,7 @@ interface ClientCardProps {
   onUnarchive?: (client: ClientWithRelations) => void;
 }
 
-const ClientCard: React.FC<ClientCardProps> = ({
+const ClientCard: React.FC<ClientCardProps> = React.memo(({
   client,
   palette,
   onToggleStatus,
@@ -171,7 +171,7 @@ const ClientCard: React.FC<ClientCardProps> = ({
       </View>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   cardItem: {

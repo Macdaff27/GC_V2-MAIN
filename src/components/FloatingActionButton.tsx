@@ -10,7 +10,7 @@ type FloatingActionButtonProps = {
   accessibilityLabel?: string;
 };
 
-const FloatingActionButton = ({
+const FloatingActionButton = React.memo(({
   onPress,
   palette,
   accessibilityLabel,
@@ -26,7 +26,7 @@ const FloatingActionButton = ({
   >
     <AppText style={[styles.fabLabel, { color: palette.background }]}>+</AppText>
   </Pressable>
-);
+));
 
 const styles = StyleSheet.create({
   fab: {
