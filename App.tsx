@@ -188,7 +188,7 @@ function App(): React.JSX.Element {
           isImporting={clientData.isImporting}
           clientsCount={appState.clients.length}
           isDark={appState.manualDarkMode}
-          systemIsDark={false}
+          systemIsDark={appState.isDarkMode}
           onToggleTheme={appState.handleToggleTheme}
           palette={appState.palette}
         />
