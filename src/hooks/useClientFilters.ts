@@ -23,6 +23,7 @@ export interface UseClientFiltersReturn {
   searchFilteredClients: ClientWithRelations[];
   statusCounts: StatusCounts;
   filteredClients: ClientWithRelations[];
+  filteredClientsCount: number; // Nouvelle valeur stable
 
   // Handlers
   setSearchQuery: (query: string) => void;
@@ -101,6 +102,7 @@ export const useClientFilters = ({
     searchFilteredClients,
     statusCounts,
     filteredClients,
+    filteredClientsCount: filteredClients.length,
 
     // Handlers
     setSearchQuery,
