@@ -55,6 +55,11 @@ export const useAppState = (): UseAppStateReturn => {
           actionButtonBackground: 'rgba(148, 163, 184, 0.24)',
           actionButtonBackgroundDisabled: 'rgba(148, 163, 184, 0.12)',
           actionButtonText: '#F8FAFC',
+          // Switch colors
+          trackOff: '#374151',
+          trackOn: '#10B981',
+          thumbOff: '#9CA3AF',
+          thumbOn: '#34D399',
         }
       : {
           background: '#F1F5F9',
@@ -68,6 +73,11 @@ export const useAppState = (): UseAppStateReturn => {
           actionButtonBackground: '#E2E8F0',
           actionButtonBackgroundDisabled: 'rgba(226, 232, 240, 0.65)',
           actionButtonText: '#1E293B',
+          // Switch colors
+          trackOff: '#CBD5E1',
+          trackOn: '#10B981',
+          thumbOff: '#94A3B8',
+          thumbOn: '#34D399',
         }
   ), [isDarkMode]);
 

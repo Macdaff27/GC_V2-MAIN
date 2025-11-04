@@ -10,6 +10,11 @@ export type Palette = {
   actionButtonBackground: string;
   actionButtonBackgroundDisabled: string;
   actionButtonText: string;
+  // Switch component colors
+  trackOff: string;
+  trackOn: string;
+  thumbOff: string;
+  thumbOn: string;
 };
 export type DatabaseName = 'main' | 'archive';
 export type StatusFilter = 'all' | 'in-progress' | 'done';

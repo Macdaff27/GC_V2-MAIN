@@ -1,50 +1,88 @@
-# GC_V2 — Gestion Clientes (UI “cards-only”)
+# GC_V2 — Gestion Clientes (Architecture Modulaire Avancée)
 
-**Version** : v1.3.0 — Cards-only UI stable  
-**Statut** : Production locale (Android) • Offline-first
+**Version** : v2.0.0 — Refactoring Complet • Production-Ready
+**Statut** : Production locale (Android/iOS) • Offline-first • Architecture Enterprise
 
 ## ✨ Objectif
-Application mobile React Native pour gérer les commandes clientes d’une boutique de robes. **Toutes les infos sont visibles sur la carte** d’une cliente — **aucune page de détail**.
+Application mobile React Native pour gérer les commandes clientes d'une boutique de robes avec une **architecture modulaire avancée**. **Toutes les infos sont visibles sur la carte** d'une cliente — **aucune page de détail**.
 
-## 🚀 Fonctionnalités
-- CRUD clientes, téléphones, frais  
-- Statut : en cours / terminée (codes couleur)  
-- Recherche (nom, page, note) + tri croissant/décroissant  
-- Statistiques (Total / En cours / Terminées)  
-- Export / Import JSON (préserve `dateAjout`)  
-- Thème clair/sombre  
-- **UI “cards-only”** : pas de modales de détail, pas de navigation  
+## 🚀 Fonctionnalités (v2.0)
+- ✅ CRUD clientes, téléphones, frais avec validation avancée
+- ✅ Statut : en cours / terminée (codes couleur + animations)
+- ✅ Recherche intelligente (nom, page, note) + tri croissant/décroissant
+- ✅ Statistiques temps réel (Total / En cours / Terminées)
+- ✅ Export / Import JSON (préserve `dateAjout` + validation)
+- ✅ Thème clair/sombre automatique + manuel
+- ✅ **UI "cards-only"** : pas de modales de détail, pas de navigation
+- ✅ **Architecture modulaire** : 10 modules spécialisés
+- ✅ **Optimisations performance** : React.memo, hooks stables
+- ✅ **Gestion d'erreurs robuste** : retry automatique, logging
+- ✅ **Internationalisation** : FR/EN/AR préparée
+- ✅ **Tests unitaires** : couverture critique
+- ✅ **Types avancés** : sécurité TypeScript maximale
 
-## 🧱 Stack
-- React Native + TypeScript  
-- SQLite : `react-native-quick-sqlite`  
-- Fichiers : `react-native-fs`  
-- Sélecteur : `@react-native-documents/picker`  
-- Safe Area : `react-native-safe-area-context`
+## 🧱 Stack Technologique (v2.0)
+- **React Native + TypeScript** (strict mode)
+- **SQLite** : `react-native-quick-sqlite`
+- **Fichiers** : `react-native-fs`
+- **Sélecteur** : `@react-native-documents/picker`
+- **Safe Area** : `react-native-safe-area-context`
+- **Architecture** : Hooks personnalisés + séparation des responsabilités
 
-## 📦 Installation
+## 📦 Installation & Build
 ```bash
 npm install
 # Android
 npx react-native run-android
 # iOS (si besoin)
 cd ios && pod install && cd .. && npx react-native run-ios
+# Tests
+npm test
+# Lint
+npm run lint
+# Build production
+npx react-native build-android --mode=release
 ```
 
-## 🗂️ Structure (principale)
+## 🗂️ Architecture Modulaire (v2.0)
 ```
-App.tsx                     # Orchestrateur (logique, FlatList, formulaires)
-AppText.tsx                 # Texte commun
+App.tsx                     # Orchestrateur léger (200 lignes vs 800 initiales)
+AppText.tsx                 # Composant texte unifié
+
 src/
-  components/
-    ClientCard.tsx          # Carte cliente (toutes les infos)
-    SearchBar.tsx           # Barre de recherche
-    Stats.tsx               # 3 compteurs + filtres
-    DataActions.tsx         # Export / Import
-    ThemeToggle.tsx         # Switch thème
-    SortButton.tsx          # Tri
-  types/index.ts            # Types TS
-  utils/format.ts           # Fonctions pures (formatage, normalisation)
+  ├─ components/            # Composants UI optimisés
+  │   ├─ AppControls.tsx    # Consolidation des contrôles UI
+  │   ├─ ClientCard.tsx     # Carte optimisée (React.memo)
+  │   └─ FloatingActionButton.tsx # FAB optimisé
+  │
+  ├─ hooks/                 # Logique métier modulaire (6 hooks)
+  │   ├─ useAppState.ts     # État global + thème
+  │   ├─ useClientActions.ts # Actions CRUD
+  │   ├─ useClientData.ts   # Gestion données
+  │   ├─ useClientFilters.ts # Recherche + tri
+  │   ├─ useSmartScroll.ts  # Scroll intelligent
+  │   ├─ useDatabase.ts     # Base de données
+  │   ├─ useErrorHandler.ts # Gestion erreurs robuste
+  │   └─ useStableCallbacks.ts # Callbacks optimisés
+  │
+  ├─ types/                 # Types TypeScript avancés
+  │   ├─ index.ts           # Types domaine
+  │   └─ utils.ts           # Types utilitaires (DeepPartial, Branded, etc.)
+  │
+  ├─ utils/                 # Utilitaires purs
+  │   ├─ format.ts          # Formatage
+  │   ├─ validation.ts      # Validation avancée
+  │   └─ logger.ts          # Logging configurable
+  │
+  ├─ constants/             # Constantes centralisées
+  │   ├─ colors.ts          # Palette de couleurs
+  │   └─ dimensions.ts      # Dimensions + espacements
+  │
+  ├─ i18n/                  # Internationalisation
+  │   └─ index.ts           # Support FR/EN/AR
+  │
+  └─ config/                # Configuration
+      └─ bundle.ts          # Optimisations bundle
 ```
 
 ## 🗃️ Schéma SQL

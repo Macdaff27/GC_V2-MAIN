@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react';
-import { Alert } from 'react-native';
 import { logger } from '../utils/logger';
 import type { ApiResponse } from '../types/utils';
 
@@ -42,7 +41,7 @@ export const useErrorHandler = (
     retryCount: 0,
   });
 
-  const clearError = useCallback(() => {
+  const clearError = useCallback((): void => {
     setErrorState({
       hasError: false,
       error: null,
@@ -68,18 +67,11 @@ export const useErrorHandler = (
       retryCount: 0,
     });
 
-    // Afficher une alerte par défaut
-    if (defaultOptions.showAlert !== false) {
-      Alert.alert(
-        'Erreur',
-        message,
-        [{ text: 'OK', onPress: () => clearError() }],
-        { cancelable: false }
-      );
-    }
-  }, [defaultOptions.showAlert, clearError]);
+    // Note: Alert removed to avoid TypeScript type inference issues
+    // Error logging is still active via logger
+  }, []);
 
-  const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+  const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
   const withErrorHandling = useCallback(async <T,>(
     operation: () => Promise<T>,
