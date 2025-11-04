@@ -53,7 +53,7 @@ function App(): React.JSX.Element {
 
 
   // Client filters hook
-  const clientFilters = useClientFilters({ clients: appState.clients });
+  const clientFilters = useClientFilters({ clients: appState.clients }); 
 
   // Smart scroll hook
   const smartScroll = useSmartScroll({
@@ -152,7 +152,7 @@ function App(): React.JSX.Element {
     appState.setActiveDatabase(dbName);
   }, [appState, clientData]);
 
-const renderClient = useCallback(({ item }: { item: ClientWithRelations }) => (
+  const renderClient = useCallback(({ item }: { item: ClientWithRelations }) => (
     <ClientCard
       client={item}
       palette={appState.palette}

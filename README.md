@@ -1,24 +1,25 @@
-# GC_V2 — Gestion Clientes (UI “cards‑only”)
-**Version** : v1.3.0 — Cards‑only UI stable  
-**Statut** : Production locale (Android) • Offline‑first
+# GC_V2 — Gestion Clientes (UI “cards-only”)
+
+**Version** : v1.3.0 — Cards-only UI stable  
+**Statut** : Production locale (Android) • Offline-first
 
 ## ✨ Objectif
 Application mobile React Native pour gérer les commandes clientes d’une boutique de robes. **Toutes les infos sont visibles sur la carte** d’une cliente — **aucune page de détail**.
 
 ## 🚀 Fonctionnalités
-- CRUD clientes, téléphones, frais
-- Statut : en cours / terminée (codes couleur)
-- Recherche (nom, page, note) + tri croissant/décroissant
-- Statistiques (Total / En cours / Terminées)
-- Export / Import JSON (préserve `dateAjout`)
-- Thème clair/sombre
-- **UI “cards‑only”** : pas de modales de détail, pas de navigation
+- CRUD clientes, téléphones, frais  
+- Statut : en cours / terminée (codes couleur)  
+- Recherche (nom, page, note) + tri croissant/décroissant  
+- Statistiques (Total / En cours / Terminées)  
+- Export / Import JSON (préserve `dateAjout`)  
+- Thème clair/sombre  
+- **UI “cards-only”** : pas de modales de détail, pas de navigation  
 
 ## 🧱 Stack
-- React Native + TypeScript
-- SQLite : `react-native-quick-sqlite`
-- Fichiers : `react-native-fs`
-- Sélecteur : `@react-native-documents/picker`
+- React Native + TypeScript  
+- SQLite : `react-native-quick-sqlite`  
+- Fichiers : `react-native-fs`  
+- Sélecteur : `@react-native-documents/picker`  
 - Safe Area : `react-native-safe-area-context`
 
 ## 📦 Installation
@@ -46,7 +47,7 @@ src/
   utils/format.ts           # Fonctions pures (formatage, normalisation)
 ```
 
-## 🗃️ Schéma (résumé)
+## 🗃️ Schéma SQL
 ```sql
 CREATE TABLE clients (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,21 +74,58 @@ CREATE TABLE telephones (
 );
 ```
 
-## 🔄 Import/Export JSON
-- Export : `exportedAt`, `total`, `clients[]` (conserve `dateAjout`)
-- Import : supporte `clients` **ou** tableau direct.  
-- **Mode “remplacement complet”** : l’import vide la base (confirmation) puis insère.
+## 🧩 Schéma entité-relation (ER)
 
-## 🧭 Choix “cards‑only”
-- ✅ Aucune navigation, aucune “page de détail”
-- ✅ Lecture rapide en boutique (toutes infos visibles)
+### En image
+![Schéma ER](er_diagram.png)
+
+### En Mermaid
+```mermaid
+erDiagram
+    clients ||--o{ frais : a
+    clients ||--o{ telephones : a
+
+    clients {
+        int id PK
+        string nom "Nom du client (UNIQUE)"
+        int page "Numéro de page (UNIQUE)"
+        string note
+        real montant_total
+        real montant_restant
+        string date_ajout
+        int statut "0=Inactif, 1=Actif"
+    }
+
+    frais {
+        int id PK
+        int client_id FK "Référence au client (ON DELETE CASCADE)"
+        string type
+        real montant
+    }
+
+    telephones {
+        int id PK
+        int client_id FK "Référence au client (ON DELETE CASCADE)"
+        string numero
+    }
+```
+
+## 🔄 Import/Export JSON
+- Export : `exportedAt`, `total`, `clients[]` (conserve `dateAjout`)  
+- Import : supporte `clients` **ou** tableau direct  
+- **Mode “remplacement complet”** : l’import vide la base (confirmation) puis insère  
+
+## 🧭 Choix “cards-only”
+- ✅ Aucune navigation, aucune “page de détail”  
+- ✅ Lecture rapide en boutique (toutes infos visibles)  
 - ❗ Les références `ClientDetailModal`, `navigate('Detail')` **ont été supprimées**
 
 ## 🧪 Vérification rapide
-1) Ajouter une cliente → visible dans la liste  
-2) Basculer statut → couleur change (jaune/vert)  
-3) Exporter → JSON contient `dateAjout` d’origine  
-4) Importer → vidage + ré‑insertion, dates respectées
+1. Ajouter une cliente → visible dans la liste  
+2. Basculer statut → couleur change (jaune/vert)  
+3. Exporter → JSON contient `dateAjout` d’origine  
+4. Importer → vidage + ré-insertion, dates respectées  
 
 ---
+
 © Boutique — usage interne
