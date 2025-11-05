@@ -1,8 +1,16 @@
+/**
+ * Importations React et dépendances pour useClientData
+ */
 import { useCallback, useState } from 'react';
+// Importations des composants React Native
 import { Alert, Platform } from 'react-native';
+// Importation du sélecteur de documents pour l'import/export
 import { errorCodes as documentPickerErrorCodes, isErrorWithCode as isDocumentPickerError, keepLocalCopy, pick, types as documentPickerTypes } from '@react-native-documents/picker';
+// Importation du système de fichiers React Native
 import RNFS from 'react-native-fs';
+// Importations des types TypeScript
 import type { ClientWithRelations, JsonImportShape } from '../types';
+// Importations des utilitaires de formatage et normalisation
 import {
   normalizeParsedInput,
   formatDate,
@@ -12,28 +20,41 @@ import {
   buildExportFileName,
 } from '../utils/format';
 
+/**
+ * Interface définissant les paramètres du hook useClientData
+ * Ce hook gère l'import/export des données clients
+ */
 export interface UseClientDataParams {
-  clients: ClientWithRelations[];
-  isReady: boolean;
-  createClient: (payload: any) => Promise<number>;
-  clearAllData: () => Promise<void>;
-  onLoadClients: () => Promise<void>;
+  clients: ClientWithRelations[]; // Liste des clients à exporter
+  isReady: boolean; // État de préparation de la base de données
+  createClient: (payload: any) => Promise<number>; // Fonction de création d'un client
+  clearAllData: () => Promise<void>; // Fonction de vidage des données
+  onLoadClients: () => Promise<void>; // Fonction de rechargement des clients
 }
 
+/**
+ * Interface définissant le retour du hook useClientData
+ * Fournit les états et fonctions pour l'import/export
+ */
 export interface UseClientDataReturn {
-  // États
-  loading: boolean;
-  isImporting: boolean;
-  isExporting: boolean;
+  // États du hook
+  loading: boolean; // État de chargement général
+  isImporting: boolean; // État d'import en cours
+  isExporting: boolean; // État d'export en cours
 
-  // Handlers
-  setLoading: (loading: boolean) => void;
-  handleExportPress: () => Promise<void>;
-  handleImportPress: () => Promise<void>;
-  triggerExport: () => void;
-  triggerImport: () => void;
+  // Gestionnaires d'événements
+  setLoading: (loading: boolean) => void; // Contrôle l'état de chargement
+  handleExportPress: () => Promise<void>; // Gestionnaire d'export direct
+  handleImportPress: () => Promise<void>; // Gestionnaire d'import direct
+  triggerExport: () => void; // Déclencheur d'export (avec gestion d'erreur)
+  triggerImport: () => void; // Déclencheur d'import (avec gestion d'erreur)
 }
 
+/**
+ * Hook personnalisé useClientData - Gestion de l'import/export des données clients
+ * Fournit les fonctionnalités d'export JSON et d'import avec validation et normalisation
+ * Gère les états de chargement et les interactions avec le système de fichiers
+ */
 export const useClientData = ({
   clients,
   isReady,
@@ -41,9 +62,10 @@ export const useClientData = ({
   clearAllData,
   onLoadClients,
 }: UseClientDataParams): UseClientDataReturn => {
-  const [loading, setLoading] = useState(true);
-  const [isImporting, setIsImporting] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
+  // États locaux pour gérer les opérations d'import/export
+  const [loading, setLoading] = useState(true); // État de chargement général
+  const [isImporting, setIsImporting] = useState(false); // Flag d'import en cours
+  const [isExporting, setIsExporting] = useState(false); // Flag d'export en cours
 
   const handleExportPress = useCallback(async () => {
     if (isExporting) {
@@ -261,17 +283,18 @@ export const useClientData = ({
     handleImportPress().catch(() => {});
   }, [handleImportPress]);
 
+  // Retour du hook avec tous les états et fonctions d'import/export
   return {
-    // États
-    loading,
-    isImporting,
-    isExporting,
+    // États du hook (pour monitoring et UI)
+    loading, // État de chargement général
+    isImporting, // True pendant l'import
+    isExporting, // True pendant l'export
 
-    // Handlers
-    setLoading,
-    handleExportPress,
-    handleImportPress,
-    triggerExport,
-    triggerImport,
+    // Gestionnaires d'événements principaux
+    setLoading, // Contrôle manuel de l'état loading
+    handleExportPress, // Export direct (avec gestion d'erreur)
+    handleImportPress, // Import direct (avec gestion d'erreur)
+    triggerExport, // Déclencheur d'export (sans gestion d'erreur)
+    triggerImport, // Déclencheur d'import (sans gestion d'erreur)
   };
 };

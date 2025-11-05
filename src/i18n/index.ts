@@ -1,87 +1,97 @@
 /**
  * Configuration d'internationalisation - Préparation pour l'extension future
  * Structure prête pour l'intégration de react-i18next
+ * Fournit un système d'internationalisation léger avec support français/arabe/anglais
  */
 
+/**
+ * Langues supportées par l'application
+ * 'fr' = Français, 'en' = Anglais, 'ar' = Arabe
+ */
 export type Language = 'fr' | 'en' | 'ar';
 
+/**
+ * Interface définissant toutes les clés de traduction disponibles
+ * Utilise des clés en dot notation pour une organisation logique
+ * Chaque clé correspond à une chaîne traduisible dans l'interface
+ */
 export interface TranslationKeys {
-  // Navigation
-  'nav.clients': string;
-  'nav.archive': string;
+  // Navigation - Éléments de menu et onglets
+  'nav.clients': string; // Onglet "Clients"
+  'nav.archive': string; // Onglet "Archives"
 
-  // Actions
-  'actions.add': string;
-  'actions.edit': string;
-  'actions.delete': string;
-  'actions.save': string;
-  'actions.cancel': string;
-  'actions.export': string;
-  'actions.import': string;
+  // Actions - Boutons et actions utilisateur
+  'actions.add': string; // Bouton "Ajouter"
+  'actions.edit': string; // Bouton "Modifier"
+  'actions.delete': string; // Bouton "Supprimer"
+  'actions.save': string; // Bouton "Enregistrer"
+  'actions.cancel': string; // Bouton "Annuler"
+  'actions.export': string; // Bouton "Exporter"
+  'actions.import': string; // Bouton "Importer"
 
-  // Status
-  'status.done': string;
-  'status.inProgress': string;
-  'status.all': string;
+  // Status - États des clients et filtres
+  'status.done': string; // Statut "Terminé"
+  'status.inProgress': string; // Statut "En cours"
+  'status.all': string; // Filtre "Tous"
 
-  // Messages
-  'messages.noClients': string;
-  'messages.loading': string;
-  'messages.confirmDelete': string;
-  'messages.exportSuccess': string;
-  'messages.importSuccess': string;
+  // Messages - Notifications et états vides
+  'messages.noClients': string; // Message "Aucune cliente trouvée"
+  'messages.loading': string; // Indicateur "Chargement..."
+  'messages.confirmDelete': string; // Confirmation de suppression
+  'messages.exportSuccess': string; // Succès d'export
+  'messages.importSuccess': string; // Succès d'import
 
-  // Form labels
-  'form.name': string;
-  'form.page': string;
-  'form.amount': string;
-  'form.note': string;
-  'form.phone': string;
+  // Form labels - Étiquettes des champs de formulaire
+  'form.name': string; // Champ "Nom"
+  'form.page': string; // Champ "Page"
+  'form.amount': string; // Champ "Montant"
+  'form.note': string; // Champ "Note"
+  'form.phone': string; // Champ "Téléphone"
 
-  // Validation
-  'validation.required': string;
-  'validation.invalidAmount': string;
-  'validation.invalidPhone': string;
+  // Validation - Messages d'erreur de validation
+  'validation.required': string; // Champ requis
+  'validation.invalidAmount': string; // Montant invalide
+  'validation.invalidPhone': string; // Téléphone invalide
 }
 
-// Traductions françaises (par défaut)
+// Traductions françaises (langue par défaut de l'application)
 const frTranslations: TranslationKeys = {
-  // Navigation
-  'nav.clients': 'Clients',
-  'nav.archive': 'Archives',
+  // Navigation - Éléments d'interface principaux
+  'nav.clients': 'Clients', // Onglet principal
+  'nav.archive': 'Archives', // Section archives
 
-  // Actions
-  'actions.add': 'Ajouter',
-  'actions.edit': 'Modifier',
-  'actions.delete': 'Supprimer',
-  'actions.save': 'Enregistrer',
-  'actions.cancel': 'Annuler',
-  'actions.export': 'Exporter',
-  'actions.import': 'Importer',
+  // Actions - Boutons et interactions utilisateur
+  'actions.add': 'Ajouter', // Ajouter un nouveau client
+  'actions.edit': 'Modifier', // Éditer un client existant
+  'actions.delete': 'Supprimer', // Supprimer un client
+  'actions.save': 'Enregistrer', // Sauvegarder les modifications
+  'actions.cancel': 'Annuler', // Annuler l'action en cours
+  'actions.export': 'Exporter', // Exporter les données
+  'actions.import': 'Importer', // Importer des données
 
-  // Status
-  'status.done': 'Terminé',
-  'status.inProgress': 'En cours',
-  'status.all': 'Tous',
+  // Status - États des commandes clients
+  'status.done': 'Terminé', // Commande finalisée
+  'status.inProgress': 'En cours', // Commande en préparation
+  'status.all': 'Tous', // Tous les statuts confondus
 
-  // Messages
-  'messages.noClients': 'Aucune cliente trouvée',
-  'messages.loading': 'Chargement...',
-  'messages.confirmDelete': 'Confirmer la suppression ?',
-  'messages.exportSuccess': 'Export réussi',
-  'messages.importSuccess': 'Import réussi',
+  // Messages - Notifications utilisateur et états
+  'messages.noClients': 'Aucune cliente trouvée', // État vide
+  'messages.loading': 'Chargement...', // Indicateur de chargement
+  'messages.confirmDelete': 'Confirmer la suppression ?', // Dialogue de confirmation
+  'messages.exportSuccess': 'Export réussi', // Confirmation d'export
+  'messages.importSuccess': 'Import réussi', // Confirmation d'import
 
-  // Form labels
-  'form.name': 'Nom',
-  'form.page': 'Page',
-  'form.amount': 'Montant',
-  'form.note': 'Note',
-  'form.phone': 'Téléphone',
+  // Form labels - Étiquettes des champs de formulaire
+  'form.name': 'Nom', // Nom du client
+  'form.page': 'Page', // Numéro de page dans le cahier
+  'form.amount': 'Montant', // Montant de la commande
+  'form.note': 'Note', // Notes additionnelles
+  'form.phone': 'Téléphone', // Numéro de téléphone
 
-  // Validation
-  'validation.required': 'Ce champ est requis',
-  'validation.invalidAmount': 'Montant invalide',
-  'validation.invalidPhone': 'Numéro de téléphone invalide',
+  // Validation - Messages d'erreur pour la validation des formulaires
+  'validation.required': 'Ce champ est requis', // Champ obligatoire non rempli
+  'validation.invalidAmount': 'Montant invalide', // Format de montant incorrect
+  'validation.invalidPhone': 'Numéro de téléphone invalide', // Format de téléphone incorrect
 };
 
 // Traductions anglaises
@@ -164,86 +174,133 @@ const arTranslations: TranslationKeys = {
   'validation.invalidPhone': 'رقم هاتف غير صحيح',
 };
 
-// Collection de toutes les traductions
+// Collection de toutes les traductions indexées par langue
 const translations: Record<Language, TranslationKeys> = {
-  fr: frTranslations,
-  en: enTranslations,
-  ar: arTranslations,
+  fr: frTranslations, // Français (défaut)
+  en: enTranslations, // Anglais
+  ar: arTranslations, // Arabe
 };
 
-// Langue par défaut
+// État global de la langue actuelle (mutable pour simplicité)
 let currentLanguage: Language = 'fr';
 
 /**
- * Hook pour utiliser les traductions
- * À remplacer par react-i18next quand disponible
+ * Hook principal pour l'internationalisation dans les composants React
+ * Fournit les fonctions de traduction et changement de langue
+ * Architecture simple prête à être remplacée par react-i18next
  */
 export const useTranslation = () => {
+  /**
+   * Fonction de traduction principale
+   * @param key - Clé de traduction (type-safe grâce à keyof)
+   * @returns Chaîne traduite dans la langue actuelle
+   */
   const t = (key: keyof TranslationKeys): string => {
     return translations[currentLanguage][key];
   };
 
+  /**
+   * Change la langue de l'application
+   * @param language - Nouvelle langue à utiliser
+   */
   const changeLanguage = (language: Language) => {
     currentLanguage = language;
   };
 
   return {
-    t,
-    changeLanguage,
-    currentLanguage,
+    t, // Fonction de traduction
+    changeLanguage, // Changement de langue
+    currentLanguage, // Langue actuelle (pour l'UI)
   };
 };
 
 /**
- * Fonction utilitaire pour les traductions (hors composants)
+ * Fonction utilitaire de traduction pour le code hors composants
+ * Utile pour les utilitaires, les hooks personnalisés, etc.
+ * @param key - Clé de traduction
+ * @returns Chaîne traduite
  */
 export const t = (key: keyof TranslationKeys): string => {
   return translations[currentLanguage][key];
 };
 
 /**
- * Configuration de la langue
+ * Fonctions utilitaires pour la gestion globale de la langue
+ * Permettent de contrôler la langue depuis n'importe où dans l'app
+ */
+
+/**
+ * Définit la langue globale de l'application
+ * @param language - Langue à définir
  */
 export const setLanguage = (language: Language) => {
   currentLanguage = language;
 };
 
+/**
+ * Récupère la langue actuellement active
+ * @returns Langue actuelle
+ */
 export const getCurrentLanguage = (): Language => {
   return currentLanguage;
 };
 
+/**
+ * Liste toutes les langues disponibles
+ * @returns Tableau des langues supportées
+ */
 export const getAvailableLanguages = (): Language[] => {
   return Object.keys(translations) as Language[];
 };
 
 /**
- * Hook pour les nombres formatés selon la locale
+ * Hook pour le formatage des nombres selon la locale
+ * Adapte automatiquement le format selon la langue (séparateurs, etc.)
  */
 export const useNumberFormatter = () => {
+  /**
+   * Formate un nombre selon la locale actuelle
+   * @param num - Nombre à formater
+   * @returns Nombre formaté (ex: "1 234,56" en français)
+   */
   const formatNumber = (num: number): string => {
+    // Utilise ar-DZ pour l'arabe (Algérien) sinon la langue directement
     return num.toLocaleString(currentLanguage === 'ar' ? 'ar-DZ' : currentLanguage);
   };
 
+  /**
+   * Formate un montant en devise (Dinars Algériens)
+   * @param amount - Montant à formater
+   * @returns Montant formaté avec devise (ex: "1 234,56 DA")
+   */
   const formatCurrency = (amount: number): string => {
     return `${formatNumber(amount)} DA`;
   };
 
   return {
-    formatNumber,
-    formatCurrency,
+    formatNumber, // Formatage de nombres
+    formatCurrency, // Formatage de montants
   };
 };
 
 /**
- * Hook pour les dates formatées selon la locale
+ * Hook pour le formatage des dates selon la locale
+ * Adapte automatiquement le format selon la langue et la culture
  */
 export const useDateFormatter = () => {
+  /**
+   * Formate une date selon la locale actuelle
+   * @param date - Date à formater (Date ou string)
+   * @returns Date formatée selon la locale (ex: "15/01/2024" en français)
+   */
   const formatDate = (date: Date | string): string => {
+    // Conversion si nécessaire
     const d = typeof date === 'string' ? new Date(date) : date;
+    // Utilise ar-DZ pour l'arabe, sinon la langue directement
     return d.toLocaleDateString(currentLanguage === 'ar' ? 'ar-DZ' : currentLanguage);
   };
 
   return {
-    formatDate,
+    formatDate, // Formatage de dates
   };
 };

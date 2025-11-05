@@ -1,29 +1,46 @@
+/**
+ * Importations React et dépendances pour useClientActions
+ */
 import { useCallback } from 'react';
+// Importation des alertes React Native pour les notifications utilisateur
 import { Alert } from 'react-native';
+// Importation du hook de base de données
 import { useDatabase } from './useDatabase';
+// Importations des types TypeScript pour le typage strict
 import type {
   ClientWithRelations,
   DatabaseName,
   ClientFormValues,
 } from '../types';
+// Importations des fonctions utilitaires pour créer des valeurs de formulaire
 import {
   createEmptyFormValues,
   createFormValuesFromClient,
 } from '../components/ClientFormModal';
+// Importation de l'utilitaire de formatage des dates pour le stockage
 import {
   formatDateForStorage,
 } from '../utils/format';
 
+/**
+ * Interface définissant les paramètres du hook useClientActions
+ * Ce hook nécessite des callbacks pour communiquer avec l'état global de l'application
+ */
 interface UseClientActionsParams {
-  activeDatabase: DatabaseName;
-  onLoadClients: () => Promise<void>;
-  onSetFormVisible: (visible: boolean) => void;
-  onSetFormInitialValues: (values: ClientFormValues | null) => void;
-  onSetFormSubmitting: (submitting: boolean) => void;
-  onSetPendingScrollClientId: (id: number | null) => void;
-  onSetShouldRestoreScroll: (restore: boolean) => void;
+  activeDatabase: DatabaseName; // Base de données active ('main' ou 'archive')
+  onLoadClients: () => Promise<void>; // Fonction pour recharger la liste des clients
+  onSetFormVisible: (visible: boolean) => void; // Contrôle la visibilité du modal de formulaire
+  onSetFormInitialValues: (values: ClientFormValues | null) => void; // Définit les valeurs initiales du formulaire
+  onSetFormSubmitting: (submitting: boolean) => void; // Gère l'état de soumission du formulaire
+  onSetPendingScrollClientId: (id: number | null) => void; // ID du client pour restauration du scroll
+  onSetShouldRestoreScroll: (restore: boolean) => void; // Indique si le scroll doit être restauré
 }
 
+/**
+ * Hook personnalisé useClientActions - Gestion des actions utilisateur sur les clients
+ * Fournit toutes les fonctions nécessaires pour créer, modifier, supprimer et archiver des clients
+ * Gère la communication avec les bases de données et l'état global de l'application
+ */
 export const useClientActions = ({
   activeDatabase,
   onLoadClients,
@@ -33,10 +50,14 @@ export const useClientActions = ({
   onSetPendingScrollClientId,
   onSetShouldRestoreScroll,
 }: UseClientActionsParams) => {
+  // Initialisation des hooks de base de données pour les deux bases
   const mainDb = useDatabase({ databaseName: 'main' });
   const archiveDb = useDatabase({ databaseName: 'archive' });
+
+  // Sélection de la base active selon le paramètre
   const activeDb = activeDatabase === 'main' ? mainDb : archiveDb;
 
+  // Extraction des méthodes de la base active
   const {
     createClient: createDbClient,
     updateClient: updateDbClient,
@@ -45,19 +66,28 @@ export const useClientActions = ({
     isReady,
   } = activeDb;
 
-  const mainDbReady = mainDb.isReady;
-  const archiveFromMain = mainDb.archiveClient;
-  const unarchiveFromArchive = archiveDb.unarchiveClient;
+  // États et méthodes supplémentaires pour l'archivage
+  const mainDbReady = mainDb.isReady; // État de préparation de la base principale
+  const archiveFromMain = mainDb.archiveClient; // Fonction pour archiver depuis la base principale
+  const unarchiveFromArchive = archiveDb.unarchiveClient; // Fonction pour désarchiver depuis les archives
 
+  /**
+   * Gestionnaire pour basculer le statut d'un client (terminé/en cours)
+   * Met à jour la base de données et recharge la liste
+   */
   const handleToggleStatus = useCallback(async (client: ClientWithRelations) => {
+    // Vérification que la base de données est prête
     if (!isReady) {
       Alert.alert('Erreur', "La base de donn\u00E9es n'est pas pr\u00EAte.");
       return;
     }
 
     try {
+      // Inversion du statut actuel et mise à jour en base
       await toggleDbClientStatus(client.id, !client.statut);
+      // Rechargement de la liste pour refléter les changements
       await onLoadClients();
+      // Message de succès adapté selon le nouveau statut
       const message = client.statut ? 'Commande marquee en cours.' : 'Commande marquee terminee.';
       Alert.alert('Succes', message);
     } catch (error) {
@@ -265,15 +295,16 @@ export const useClientActions = ({
     onSetFormInitialValues(null);
   }, [onSetFormVisible, onSetFormInitialValues]);
 
+  // Retour du hook avec toutes les fonctions d'actions sur les clients
   return {
-    handleToggleStatus,
-    handleDeleteClient,
-    handleArchiveClient,
-    handleUnarchiveClient,
-    handleCreateClient,
-    handleEditClient,
-    handleSubmitClientForm,
-    handleCloseForm,
+    handleToggleStatus, // Basculer le statut d'un client
+    handleDeleteClient, // Supprimer un client avec confirmation
+    handleArchiveClient, // Archiver un client (depuis la base principale)
+    handleUnarchiveClient, // Désarchiver un client (depuis les archives)
+    handleCreateClient, // Ouvrir le formulaire de création
+    handleEditClient, // Ouvrir le formulaire d'édition
+    handleSubmitClientForm, // Soumettre le formulaire (création/modification)
+    handleCloseForm, // Fermer le formulaire
   };
 };
 

@@ -1,7 +1,13 @@
+/**
+ * Importations React et dépendances pour useDatabase
+ */
 import { useCallback, useEffect, useRef, useState } from 'react';
+// Importation des alertes React Native pour les notifications utilisateur
 import { Alert } from 'react-native';
+// Importation de QuickSQLite pour la gestion de base de données
 import { open, type QuickSQLiteConnection } from 'react-native-quick-sqlite';
 
+// Importations des types TypeScript pour le typage strict
 import type {
   ClientWithRelations,
   ClientRow,
@@ -12,78 +18,112 @@ import type {
   DatabaseName,
 } from '../types';
 
+/**
+ * Type définissant les paramètres du hook useDatabase
+ * Permet de spécifier quelle base de données utiliser (principale ou archive)
+ */
 type UseDatabaseParams = {
-  databaseName?: DatabaseName;
+  databaseName?: DatabaseName; // 'main' pour la base principale, 'archive' pour les archives
 };
 
+/**
+ * Type pour les données d'un client sans l'ID (utilisé pour création/modification)
+ * L'ID est généré automatiquement par la base de données
+ */
 type ClientPayload = Omit<ClientWithRelations, 'id'>;
 
+/**
+ * Type définissant le résultat d'une exécution de requête SQLite
+ * Structure retournée par react-native-quick-sqlite
+ */
 type ExecuteResult = {
   rows?: {
-    _array: unknown[];
-    length: number;
+    _array: unknown[]; // Tableau des résultats de la requête
+    length: number; // Nombre de lignes retournées
   };
-  insertId?: number | string | null;
+  insertId?: number | string | null; // ID généré lors d'un INSERT
 };
 
+/**
+ * Fonction utilitaire pour créer le schéma de base de données si nécessaire
+ * Définit les tables clients, frais et telephones avec leurs contraintes
+ * Active les clés étrangères et crée les index pour optimiser les performances
+ */
 const ensureSchema = (db: QuickSQLiteConnection) => {
+  // Activation des clés étrangères pour l'intégrité référentielle
   db.execute('PRAGMA foreign_keys = ON');
+
+  // Table principale des clients
   db.execute(`
     CREATE TABLE IF NOT EXISTS clients (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      nom TEXT NOT NULL UNIQUE,
-      page INTEGER NOT NULL UNIQUE,
-      note TEXT,
-      montant_total REAL NOT NULL DEFAULT 0,
-      montant_restant REAL NOT NULL DEFAULT 0,
-      date_ajout TEXT NOT NULL,
-      statut INTEGER NOT NULL DEFAULT 0 CHECK (statut IN (0, 1))
+      id INTEGER PRIMARY KEY AUTOINCREMENT,  -- ID auto-incrémenté
+      nom TEXT NOT NULL UNIQUE,               -- Nom unique du client
+      page INTEGER NOT NULL UNIQUE,           -- Numéro de page unique
+      note TEXT,                              -- Notes optionnelles
+      montant_total REAL NOT NULL DEFAULT 0,  -- Montant total de la commande
+      montant_restant REAL NOT NULL DEFAULT 0,-- Montant restant à payer
+      date_ajout TEXT NOT NULL,               -- Date d'ajout (format JJ/MM/AAAA)
+      statut INTEGER NOT NULL DEFAULT 0 CHECK (statut IN (0, 1)) -- 0=en cours, 1=terminé
     )
   `);
+
+  // Table des frais supplémentaires liés aux clients
   db.execute(`
     CREATE TABLE IF NOT EXISTS frais (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      client_id INTEGER NOT NULL,
-      type TEXT NOT NULL,
-      montant REAL NOT NULL DEFAULT 0,
+      client_id INTEGER NOT NULL,             -- Référence vers le client
+      type TEXT NOT NULL,                     -- Type de frais (ex: "livraison")
+      montant REAL NOT NULL DEFAULT 0,        -- Montant du frais
       FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
     )
   `);
+
+  // Table des numéros de téléphone liés aux clients
   db.execute(`
     CREATE TABLE IF NOT EXISTS telephones (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      client_id INTEGER NOT NULL,
-      numero TEXT NOT NULL,
+      client_id INTEGER NOT NULL,             -- Référence vers le client
+      numero TEXT NOT NULL,                   -- Numéro de téléphone
       FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE CASCADE
     )
   `);
 
+  // Index pour optimiser les requêtes sur les frais par client
   db.execute('CREATE INDEX IF NOT EXISTS idx_frais_client ON frais(client_id)');
+  // Index pour optimiser les requêtes sur les téléphones par client
   db.execute('CREATE INDEX IF NOT EXISTS idx_tel_client ON telephones(client_id)');
 };
 
+/**
+ * Fonction utilitaire pour transformer les résultats bruts de la base de données
+ * en objets ClientWithRelations avec leurs relations (frais et téléphones)
+ * Utilise une Map pour l'efficacité et assure le tri par numéro de page
+ */
 const mapRowsToClients = (
-  clientRows: ClientRow[],
-  feeRows: FeeRow[],
-  phoneRows: PhoneRow[],
+  clientRows: ClientRow[],  // Résultats de la requête clients
+  feeRows: FeeRow[],       // Résultats de la requête frais
+  phoneRows: PhoneRow[],   // Résultats de la requête téléphones
 ): ClientWithRelations[] => {
+  // Map pour stocker les clients avec leur ID comme clé
   const clientsMap = new Map<number, ClientWithRelations>();
 
+  // Première passe : créer tous les clients avec leurs données de base
   for (const clientRow of clientRows) {
     clientsMap.set(clientRow.id, {
       id: clientRow.id,
       nom: clientRow.nom,
       page: clientRow.page,
-      note: clientRow.note ?? '',
+      note: clientRow.note ?? '', // Valeur par défaut si null
       montantTotal: clientRow.montantTotal,
       montantRestant: clientRow.montantRestant,
       dateAjout: clientRow.dateAjout,
-      statut: clientRow.statut === 1,
-      frais: [],
-      telephones: [],
+      statut: clientRow.statut === 1, // Conversion integer vers boolean
+      frais: [],      // Initialisation du tableau des frais
+      telephones: [], // Initialisation du tableau des téléphones
     });
   }
 
+  // Deuxième passe : ajouter les frais à chaque client
   for (const feeRow of feeRows) {
     const client = clientsMap.get(feeRow.clientId);
     if (client) {
@@ -94,6 +134,7 @@ const mapRowsToClients = (
     }
   }
 
+  // Troisième passe : ajouter les téléphones à chaque client
   for (const phoneRow of phoneRows) {
     const client = clientsMap.get(phoneRow.clientId);
     if (client) {
@@ -103,40 +144,63 @@ const mapRowsToClients = (
     }
   }
 
+  // Retourner les clients triés par numéro de page croissant
   return Array.from(clientsMap.values()).sort((a, b) => a.page - b.page);
 };
 
+/**
+ * Hook personnalisé useDatabase - Gestion complète de la base de données SQLite
+ * Fournit toutes les opérations CRUD sur les clients avec gestion des relations
+ * Supporte deux bases de données : principale et archives
+ * Gère l'initialisation, les erreurs et la fermeture propre des connexions
+ */
 export const useDatabase = (params?: UseDatabaseParams) => {
+  // Détermination du nom de fichier de base de données selon le paramètre
   const dbName = params?.databaseName === 'archive' ? 'monprojet_archive.db' : 'monprojet.db';
-  const dbRef = useRef<QuickSQLiteConnection | null>(null);
-  const [isReady, setIsReady] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
 
+  // Référence pour stocker la connexion à la base de données
+  const dbRef = useRef<QuickSQLiteConnection | null>(null);
+
+  // États pour suivre l'état de la connexion
+  const [isReady, setIsReady] = useState(false); // True quand la DB est prête
+  const [error, setError] = useState<Error | null>(null); // Erreur éventuelle
+
+  /**
+   * Effet pour initialiser la base de données au montage du composant
+   * Gère l'ouverture de la connexion, la création du schéma et la fermeture propre
+   */
   useEffect(() => {
-    let cancelled = false;
+    let cancelled = false; // Flag pour éviter les opérations après démontage
 
     const initializeDatabase = async () => {
       try {
+        // Ouverture de la connexion à la base de données
         const connection = open({ name: dbName });
+        // Création du schéma si nécessaire
         ensureSchema(connection);
 
+        // Vérification si le composant a été démonté pendant l'initialisation
         if (cancelled) {
           connection.close();
           return;
         }
 
+        // Stockage de la connexion et mise à jour des états
         dbRef.current = connection;
         setIsReady(true);
         setError(null);
       } catch (err) {
+        // Normalisation de l'erreur et mise à jour des états
         const normalizedError = err instanceof Error ? err : new Error(String(err));
         setError(normalizedError);
         setIsReady(false);
       }
     };
 
+    // Lancement de l'initialisation (sans await pour éviter les warnings)
     initializeDatabase().catch(() => {});
 
+    // Fonction de nettoyage appelée au démontage
     return () => {
       cancelled = true;
       setIsReady(false);
@@ -145,8 +209,12 @@ export const useDatabase = (params?: UseDatabaseParams) => {
         dbRef.current = null;
       }
     };
-  }, [dbName]);
+  }, [dbName]); // Re-exécution si le nom de DB change
 
+  /**
+   * Fonction utilitaire pour obtenir la connexion DB avec vérification
+   * Lance une erreur si la base n'est pas prête
+   */
   const requireDb = useCallback((): QuickSQLiteConnection => {
     if (!dbRef.current) {
       throw new Error('Database not ready');
@@ -395,17 +463,25 @@ export const useDatabase = (params?: UseDatabaseParams) => {
     }
   }, [requireDb]);
 
+  // Retour du hook avec toutes les fonctions de base de données et états
   return {
-    loadClients,
-    createClient,
-    updateClient,
-    deleteClient,
-    toggleClientStatus,
-    clearAllData,
-    archiveClient,
-    unarchiveClient,
-    isReady,
-    error,
+    // Opérations CRUD de base
+    loadClients,     // Charger tous les clients avec leurs relations
+    createClient,    // Créer un nouveau client
+    updateClient,    // Modifier un client existant
+    deleteClient,    // Supprimer un client
+
+    // Opérations spéciales
+    toggleClientStatus, // Basculer le statut d'un client
+    clearAllData,       // Vider complètement la base de données
+
+    // Gestion des archives
+    archiveClient,      // Archiver un client (depuis DB principale vers archives)
+    unarchiveClient,    // Désarchiver un client (depuis archives vers DB principale)
+
+    // États de la connexion
+    isReady, // True quand la base de données est prête
+    error,   // Erreur éventuelle lors de l'initialisation
   };
 };
 

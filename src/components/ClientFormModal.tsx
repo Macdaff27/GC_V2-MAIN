@@ -1,4 +1,8 @@
+/**
+ * Importations React et composants nécessaires pour ClientFormModal
+ */
 import React, { useCallback, useEffect, useState } from 'react';
+// Importations des composants React Native pour l'interface du formulaire
 import {
   KeyboardAvoidingView,
   Modal,
@@ -10,13 +14,18 @@ import {
   TextInput,
   View,
 } from 'react-native';
+// Importation du sélecteur de date
 import DateTimePicker from '@react-native-community/datetimepicker';
+// Importation pour gérer les zones sûres de l'écran
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+// Importation du composant de texte personnalisé
 import AppText from '../../AppText';
+// Importation de l'utilitaire de formatage des dates
 import {
   formatDate,
 } from '../utils/format';
+// Importations des types TypeScript pour le typage strict
 import type {
   ClientFormFee,
   ClientFormModalProps,
@@ -27,31 +36,44 @@ import type {
   Phone,
 } from '../types';
 
+/**
+ * Fonctions utilitaires pour la gestion des formulaires
+ */
+
+// Génère une clé unique pour identifier les éléments de formulaire dynamiques
 const createUniqueKey = (): string => Math.random().toString(36).slice(2, 10);
 
+// Crée un objet frais vide pour le formulaire
 const createEmptyFee = (): ClientFormFee => ({
   key: createUniqueKey(),
   type: '',
   montant: '',
 });
 
+// Crée un objet téléphone vide pour le formulaire
 const createEmptyPhone = (): ClientFormPhone => ({
   key: createUniqueKey(),
   numero: '',
 });
 
+/**
+ * Crée des valeurs de formulaire vides pour l'ajout d'un nouveau client
+ */
 export const createEmptyFormValues = (): ClientFormValues => ({
   nom: '',
   page: '',
   note: '',
   montantTotal: '',
   montantRestant: '',
-  dateAjout: formatDate(new Date()),
-  statut: false,
-  frais: [createEmptyFee()],
-  telephones: [createEmptyPhone()],
+  dateAjout: formatDate(new Date()), // Date du jour formatée
+  statut: false, // Par défaut : en cours
+  frais: [createEmptyFee()], // Au moins un frais vide
+  telephones: [createEmptyPhone()], // Au moins un téléphone vide
 });
 
+/**
+ * Convertit un objet ClientWithRelations en valeurs de formulaire pour l'édition
+ */
 export const createFormValuesFromClient = (client: ClientWithRelations): ClientFormValues => ({
   id: client.id,
   nom: client.nom,
@@ -72,6 +94,11 @@ export const createFormValuesFromClient = (client: ClientWithRelations): ClientF
   })),
 });
 
+/**
+ * Composant ClientFormModal - Modal de formulaire pour créer/éditer un client
+ * Gère un formulaire complexe avec champs dynamiques pour frais et téléphones
+ * Supporte l'ajout et l'édition avec validation et gestion d'état
+ */
 function ClientFormModal({
   visible,
   palette,
@@ -80,14 +107,23 @@ function ClientFormModal({
   onClose,
   onSubmit,
 }: ClientFormModalProps) {
+  // État du formulaire - valeurs actuelles des champs
   const [formValues, setFormValues] = useState<ClientFormValues>(initialValues ?? createEmptyFormValues());
+
+  // État pour contrôler l'affichage du sélecteur de date
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Valeur actuelle du sélecteur de date (objet Date)
   const [datePickerValue, setDatePickerValue] = useState<Date>(() => {
     const [d, m, y] = (formValues.dateAjout || '').split('/').map(Number);
     const parsed = y && m && d ? new Date(y, m - 1, d) : new Date();
     return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
   });
 
+  /**
+   * Effet pour réinitialiser le formulaire quand il devient visible
+   * Met à jour les valeurs et le sélecteur de date selon les initialValues
+   */
   useEffect(() => {
     if (visible) {
       setFormValues(initialValues ?? createEmptyFormValues());
@@ -98,6 +134,9 @@ function ClientFormModal({
     }
   }, [initialValues, visible]);
 
+  /**
+   * Gestionnaire de changement pour les champs simples du formulaire
+   */
   const handleFieldChange = useCallback((field: 'nom' | 'page' | 'note' | 'montantTotal' | 'montantRestant' | 'dateAjout', value: string) => {
     setFormValues((prev) => ({
       ...prev,
@@ -105,6 +144,9 @@ function ClientFormModal({
     }));
   }, []);
 
+  /**
+   * Gestionnaire pour le changement du statut (terminé/en cours)
+   */
   const handleToggleStatut = useCallback((value: boolean) => {
     setFormValues((prev) => ({
       ...prev,
@@ -112,6 +154,9 @@ function ClientFormModal({
     }));
   }, []);
 
+  /**
+   * Gestionnaire de changement pour les champs d'un frais spécifique
+   */
   const handleFeeChange = useCallback((key: string, field: 'type' | 'montant', value: string) => {
     setFormValues((prev) => ({
       ...prev,
@@ -119,6 +164,9 @@ function ClientFormModal({
     }));
   }, []);
 
+  /**
+   * Gestionnaire pour ajouter un nouveau frais au formulaire
+   */
   const handleAddFee = useCallback(() => {
     setFormValues((prev) => ({
       ...prev,
@@ -126,6 +174,9 @@ function ClientFormModal({
     }));
   }, []);
 
+  /**
+   * Gestionnaire pour supprimer un frais (garde au moins un frais vide)
+   */
   const handleRemoveFee = useCallback((key: string) => {
     setFormValues((prev) => {
       const next = prev.frais.filter((fee) => fee.key !== key);
@@ -136,6 +187,9 @@ function ClientFormModal({
     });
   }, []);
 
+  /**
+   * Gestionnaire de changement pour le numéro de téléphone
+   */
   const handlePhoneChange = useCallback((key: string, value: string) => {
     setFormValues((prev) => ({
       ...prev,
@@ -143,6 +197,9 @@ function ClientFormModal({
     }));
   }, []);
 
+  /**
+   * Gestionnaire pour ajouter un nouveau numéro de téléphone
+   */
   const handleAddPhone = useCallback(() => {
     setFormValues((prev) => ({
       ...prev,
@@ -150,6 +207,9 @@ function ClientFormModal({
     }));
   }, []);
 
+  /**
+   * Gestionnaire pour supprimer un numéro de téléphone (garde au moins un téléphone vide)
+   */
   const handleRemovePhone = useCallback((key: string) => {
     setFormValues((prev) => {
       const next = prev.telephones.filter((phone) => phone.key !== key);
@@ -160,6 +220,9 @@ function ClientFormModal({
     });
   }, []);
 
+  /**
+   * Gestionnaire de soumission du formulaire
+   */
   const handleSubmit = useCallback(() => {
     if (submitting) {
       return;
@@ -167,6 +230,9 @@ function ClientFormModal({
     onSubmit(formValues);
   }, [formValues, onSubmit, submitting]);
 
+  /**
+   * Gestionnaire de fermeture du modal (avec protection contre la fermeture pendant soumission)
+   */
   const handleRequestClose = useCallback(() => {
     if (submitting) {
       return;
@@ -174,29 +240,35 @@ function ClientFormModal({
     onClose();
   }, [onClose, submitting]);
 
+  // Structure JSX du rendu du modal de formulaire
   return (
+    // Modal plein écran avec animation de glissement
     <Modal
       visible={visible}
       animationType="slide"
       presentationStyle="fullScreen"
       onRequestClose={handleRequestClose}
     >
+      {/* Conteneur avec zones sûres pour éviter les encoches/notch */}
       <SafeAreaView
         style={[
           styles.modalOverlay,
           { backgroundColor: palette.background },
         ]}
       >
+        {/* Gestion de l'évitement du clavier selon la plateforme */}
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={styles.modalWrapper}
         >
+          {/* Carte principale du modal avec fond dynamique */}
           <View
             style={[
               styles.modalCard,
               { backgroundColor: palette.surface, borderColor: palette.surfaceBorder },
             ]}
           >
+            {/* En-tête du modal avec titre et bouton de fermeture */}
             <View style={styles.modalHeader}>
               <AppText style={[styles.modalTitle, { color: palette.textPrimary }]}>
                 {formValues.id ? 'Modifier une cliente' : 'Ajouter une cliente'}
@@ -215,6 +287,7 @@ function ClientFormModal({
               </Pressable>
             </View>
 
+            {/* Zone de défilement pour le contenu du formulaire */}
             <ScrollView
               style={styles.modalContent}
               contentContainerStyle={styles.modalContentContainer}
@@ -511,79 +584,93 @@ function ClientFormModal({
   );
 }
 
+/**
+ * Styles CSS-in-JS pour le composant ClientFormModal utilisant StyleSheet de React Native
+ * Définit l'apparence complète du modal de formulaire avec tous ses éléments
+ */
 const styles = StyleSheet.create({
+  // Fond du modal qui couvre tout l'écran
   modalOverlay: {
-    flex: 1,
+    flex: 1, // Prend tout l'espace disponible
   },
+  // Conteneur pour la gestion du clavier
   modalWrapper: {
-    flex: 1,
+    flex: 1, // Prend tout l'espace disponible
   },
+  // Carte principale du modal (contenu principal)
   modalCard: {
-    flex: 1,
-    borderRadius: 0,
-    borderWidth: 0,
-    overflow: 'hidden',
+    flex: 1, // Prend tout l'espace disponible
+    borderRadius: 0, // Pas de coins arrondis (plein écran)
+    borderWidth: 0, // Pas de bordure
+    overflow: 'hidden', // Cache le contenu qui dépasse
   },
+  // En-tête du modal avec titre et bouton de fermeture
   modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 16,
+    flexDirection: 'row', // Disposition horizontale
+    alignItems: 'center', // Alignement vertical centré
+    justifyContent: 'space-between', // Espace entre les éléments
+    paddingHorizontal: 24, // Padding horizontal
+    paddingTop: 24, // Padding supérieur
+    paddingBottom: 16, // Padding inférieur
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontSize: 20, // Taille de police grande
+    fontWeight: '700', // Très gras
   },
+  // Bouton de fermeture du modal
   modalCloseButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: 'transparent',
+    paddingVertical: 6, // Padding vertical
+    paddingHorizontal: 12, // Padding horizontal
+    borderRadius: 999, // Arrondi complet
+    borderWidth: 1, // Bordure fine
+    borderColor: 'transparent', // Bordure transparente
   },
   modalCloseButtonPressed: {
-    opacity: 0.75,
+    opacity: 0.75, // Transparence au press
   },
   modalCloseButtonDisabled: {
-    opacity: 0.5,
+    opacity: 0.5, // Transparence quand désactivé
   },
   modalCloseButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 14, // Taille moyenne
+    fontWeight: '600', // Semi-bold
   },
+  // Conteneur du contenu défilant
   modalContent: {
-    paddingHorizontal: 24,
+    paddingHorizontal: 24, // Padding horizontal
   },
   modalContentContainer: {
-    paddingBottom: 24,
-    gap: 16,
+    paddingBottom: 24, // Padding inférieur
+    gap: 16, // Espacement entre sections
   },
+  // Section générique du formulaire
   modalSection: {
-    gap: 8,
+    gap: 8, // Espacement entre label et input
   },
+  // Label des champs de formulaire
   modalLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    letterSpacing: 0.3,
+    fontSize: 14, // Taille moyenne
+    fontWeight: '600', // Semi-bold
+    letterSpacing: 0.3, // Espacement des lettres
   },
+  // Style de base des inputs de formulaire
   modalInput: {
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    fontSize: 15,
-    fontWeight: '600',
+    borderWidth: 1, // Bordure
+    borderRadius: 14, // Coins arrondis
+    paddingVertical: 10, // Padding vertical
+    paddingHorizontal: 14, // Padding horizontal
+    fontSize: 15, // Taille de police
+    fontWeight: '600', // Semi-bold
   },
+  // Style spécifique pour les zones de texte multiligne
   modalTextarea: {
-    borderWidth: 1,
-    borderRadius: 18,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    fontSize: 15,
-    fontWeight: '500',
-    minHeight: 120,
+    borderWidth: 1, // Bordure
+    borderRadius: 18, // Coins plus arrondis
+    paddingVertical: 12, // Padding vertical plus grand
+    paddingHorizontal: 14, // Padding horizontal
+    fontSize: 15, // Taille de police
+    fontWeight: '500', // Moyen
+    minHeight: 120, // Hauteur minimale
   },
   modalRow: {
     flexDirection: 'row',
