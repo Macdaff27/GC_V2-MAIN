@@ -14,10 +14,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-// Importation du sélecteur de date
-import DateTimePicker from '@react-native-community/datetimepicker';
 // Importation pour gérer les zones sûres de l'écran
 import { SafeAreaView } from 'react-native-safe-area-context';
+// Importation du sélecteur de date
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 // Importation du composant de texte personnalisé
 import AppText from '../../AppText';
@@ -113,24 +113,14 @@ function ClientFormModal({
   // État pour contrôler l'affichage du sélecteur de date
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Valeur actuelle du sélecteur de date (objet Date)
-  const [datePickerValue, setDatePickerValue] = useState<Date>(() => {
-    const [d, m, y] = (formValues.dateAjout || '').split('/').map(Number);
-    const parsed = y && m && d ? new Date(y, m - 1, d) : new Date();
-    return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
-  });
-
   /**
    * Effet pour réinitialiser le formulaire quand il devient visible
    * Met à jour les valeurs et le sélecteur de date selon les initialValues
    */
   useEffect(() => {
     if (visible) {
-      setFormValues(initialValues ?? createEmptyFormValues());
       const next = initialValues ?? createEmptyFormValues();
-      const [d, m, y] = (next.dateAjout || '').split('/').map(Number);
-      const parsed = y && m && d ? new Date(y, m - 1, d) : new Date();
-      setDatePickerValue(Number.isNaN(parsed.getTime()) ? new Date() : parsed);
+      setFormValues(next);
     }
   }, [initialValues, visible]);
 
@@ -240,6 +230,38 @@ function ClientFormModal({
     onClose();
   }, [onClose, submitting]);
 
+  /**
+   * Convertit une chaîne de date formatée en objet Date
+   */
+  const parseDateString = useCallback((dateString: string): Date => {
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1; // Les mois commencent à 0 en JavaScript
+      const year = parseInt(parts[2], 10);
+      return new Date(year, month, day);
+    }
+    return new Date(); // Fallback à la date actuelle
+  }, []);
+
+  /**
+   * Gestionnaire pour ouvrir le sélecteur de date
+   */
+  const handleOpenDatePicker = useCallback(() => {
+    setShowDatePicker(true);
+  }, []);
+
+  /**
+   * Gestionnaire de changement de date depuis le DateTimePicker
+   */
+  const handleDateChange = useCallback((event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      const formattedDate = formatDate(selectedDate);
+      handleFieldChange('dateAjout', formattedDate);
+    }
+  }, [handleFieldChange]);
+
   // Structure JSX du rendu du modal de formulaire
   return (
     // Modal plein écran avec animation de glissement
@@ -333,41 +355,28 @@ function ClientFormModal({
                 </View>
                 <View style={styles.modalRowItem}>
                   <AppText style={[styles.modalLabel, { color: palette.textSecondary }]}>Date</AppText>
-                  <Pressable onPress={() => setShowDatePicker(true)}>
-                    <TextInput
-                      value={formValues.dateAjout}
-                      editable={false}
-                      pointerEvents="none"
+                  <Pressable
+                    onPress={handleOpenDatePicker}
+                    style={[
+                      styles.modalInput,
+                      styles.modalDatePickerPressable,
+                      {
+                        borderColor: palette.surfaceBorder,
+                        backgroundColor: palette.searchBackground,
+                      },
+                    ]}
+                  >
+                    <AppText
                       style={[
-                        styles.modalInput,
+                        styles.modalDatePickerText,
                         {
-                          color: palette.textPrimary,
-                          borderColor: palette.surfaceBorder,
-                          backgroundColor: palette.searchBackground,
+                          color: formValues.dateAjout ? palette.textPrimary : palette.searchPlaceholder,
                         },
                       ]}
-                      placeholder="JJ/MM/AAAA"
-                      placeholderTextColor={palette.searchPlaceholder}
-                    />
+                    >
+                      {formValues.dateAjout || 'JJ/MM/AAAA'}
+                    </AppText>
                   </Pressable>
-                  {showDatePicker && (
-                    <DateTimePicker
-                      value={datePickerValue}
-                      mode="date"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      onChange={(_event, selectedDate) => {
-                        if (!selectedDate) {
-                          setShowDatePicker(false);
-                          return;
-                        }
-                        setDatePickerValue(selectedDate);
-                        setFormValues((prev) => ({ ...prev, dateAjout: formatDate(selectedDate) }));
-                        if (Platform.OS === 'android') {
-                          setShowDatePicker(false);
-                        }
-                      }}
-                    />
-                  )}
                 </View>
               </View>
 
@@ -580,6 +589,14 @@ function ClientFormModal({
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
+      {showDatePicker && (
+        <DateTimePicker
+          value={parseDateString(formValues.dateAjout)}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+        />
+      )}
     </Modal>
   );
 }
@@ -779,6 +796,13 @@ const styles = StyleSheet.create({
   },
   modalActionButtonTextPrimary: {
     color: '#0F172A',
+  },
+  modalDatePickerPressable: {
+    justifyContent: 'center',
+  },
+  modalDatePickerText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
 
